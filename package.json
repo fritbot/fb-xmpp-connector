@@ -1,0 +1,27 @@
+{
+  "name": "fb-xmpp-connector",
+  "version": "0.0.0",
+  "description": "Fritbot xmpp Connector",
+  "dependencies": {
+    "q": "",
+    "node-xmpp-client": "",
+    "ltx": "",
+    "node-stringprep": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Urthen/fb-xmpp-connector.git"
+  },
+  "main": "./src/xmpp-connector",
+  "keywords": [
+    "fritbot",
+    "xmpp",
+    "chat"
+  ],
+  "author": "Michael Pratt",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Urthen/fb-xmpp-connector/issues"
+  },
+  "homepage": "https://github.com/Urthen/fb-xmpp-connector"
+}
