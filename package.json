@@ -12,7 +12,7 @@
     "type": "git",
     "url": "git://github.com/Urthen/fb-xmpp-connector.git"
   },
-  "main": "./src/xmpp-connector",
+  "main": "./index.js",
   "keywords": [
     "fritbot",
     "xmpp",
