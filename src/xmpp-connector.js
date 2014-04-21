@@ -103,6 +103,10 @@ XMPPConnector.prototype.parseChat = function (stanza) {
             user: stanza.attrs.from.split('/')[1],
             room: stanza.attrs.from.split('@')[0]
         };
+        // Never pay any attention to our own messages.
+        if (route.user == this.config.user) {
+            return;
+        }
     } else {
         route = {
             user: stanza.attrs.from.split('@')[0],
