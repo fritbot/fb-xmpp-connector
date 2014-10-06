@@ -1,10 +1,12 @@
 var ltx = require('ltx'),
     Client = require('node-xmpp-client');
 
-function XMPPConnector(bot) {
+function XMPPConnector(bot, i, Route) {
     var self = this;
-	self.bot = bot;
-    self.config = bot.config.connector;
+	self.events = bot.events;
+    self.config = bot.config.connectors[i];
+    self.idx = self.config.module + '-' + i;
+    self.Route = Route;
 
     self.client = new Client({
         jid: self.config.user + '@' + self.config.host + '/' + self.config.resource,
@@ -14,7 +16,6 @@ function XMPPConnector(bot) {
     })
 
     self.client.on('stanza', function(stanza) {
-        //console.log("got stanza", stanza.toString())
         
         // Handle inbound messages
         if (stanza.is('message')) {
@@ -37,7 +38,7 @@ function XMPPConnector(bot) {
 
     self.client.on('online', function() {
         console.log('XMPP is online')
-        self.bot.events.emit('connected');
+        self.events.emit('connected');
         self.client.send(new ltx.Element('presence', { })
           .c('show').t('chat').up()
           .c('status').t(self.config.presence)
@@ -69,8 +70,7 @@ function XMPPConnector(bot) {
         console.error(e)
     })
 
-    self.bot.events.on('shutdown', self.shutdown.bind(this));
-    self.bot.events.on('sendMessage', self.send.bind(this));
+    self.events.on('shutdown', self.shutdown.bind(this));
 }
 
 XMPPConnector.prototype.joinRoom = function (room) {    
@@ -81,7 +81,7 @@ XMPPConnector.prototype.joinRoom = function (room) {
     // Don't get ancient history, but allow the server to send a few minutes, in case we experience a momentary disconnect
     presence.c('x', {xmlns: 'http://jabber.org/protocol/muc'}).c('history', {seconds: 300} )
     this.client.send(presence);
-    this.bot.events.emit('joinedRoom', room);
+    this.events.emit('joinedRoom', room);
 }
 
 XMPPConnector.prototype.leaveRoom = function (room) {    
@@ -91,31 +91,32 @@ XMPPConnector.prototype.leaveRoom = function (room) {
         type: 'unavailable'
     })
     this.client.send(presence);
-    this.bot.events.emit('leftRoom', room);
+    this.events.emit('leftRoom', room);
 }
 
 XMPPConnector.prototype.parseChat = function (stanza) {
-    var route,
+    var route, user = null, room = null,
         body = stanza.getChildText('body')
 
     if (stanza.attrs.type === "groupchat") {
-        route = {
-            user: stanza.attrs.from.split('/')[1],
-            room: stanza.attrs.from.split('@')[0]
-        };
+        // Extract user + room from stanza
+        user = stanza.attrs.from.split('/')[1];
+        room = stanza.attrs.from.split('@')[0];
+
         // Never pay any attention to our own messages.
-        if (route.user == this.config.user) {
+        if (user == this.config.user) {
             return;
         }
+        
     } else {
-        route = {
-            user: stanza.attrs.from.split('@')[0],
-            room: null
-        };
+        // Direct messages parse differently
+        user = stanza.attrs.from.split('@')[0];
     }
 
+    route = new this.Route(this, room, user);
+
     if (body) {
-        this.bot.events.emit('sawMessage', route, stanza.getChildText('body'))
+        this.events.emit('sawMessage', route, stanza.getChildText('body'))
     }
 }
 
