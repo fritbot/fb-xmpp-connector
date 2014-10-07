@@ -16,7 +16,7 @@ function XMPPConnector(bot, i, Route) {
     })
 
     self.client.on('stanza', function(stanza) {
-        
+
         // Handle inbound messages
         if (stanza.is('message')) {
             if (stanza.attrs.type === 'chat' || stanza.attrs.type === "groupchat") {
@@ -107,7 +107,7 @@ XMPPConnector.prototype.parseChat = function (stanza) {
         if (user == this.config.user) {
             return;
         }
-        
+
     } else {
         // Direct messages parse differently
         user = stanza.attrs.from.split('@')[0];
@@ -135,5 +135,5 @@ XMPPConnector.prototype.send = function (route, message) {
 XMPPConnector.prototype.shutdown = function () {
     this.client.end();
 }
-	
+
 module.exports = XMPPConnector
