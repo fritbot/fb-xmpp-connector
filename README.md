@@ -14,7 +14,7 @@ connectors:
     host: your.host.name                        # Hostname of your XMPP/Slack/Hipchat/Jabber etc server
     conference_host: conference.your.host.name  # Hostname of the chat server, usually prepend conference. to your host name.
     user: your_username                         # Bot username
-    resource: your_resource                     # Bot resource: Some services (such as Slack) require it to match a specified value.
+    resource: your_resource                     # Bot resource. Some services require it to match a specific value (e.g., Slack requires it to match the username).
                                                 # Check your login information to find this value.
     password: your_password                     # Bot password
     presence: The Angriest Bot                  # Presence/Status, can change this to whatever you want
