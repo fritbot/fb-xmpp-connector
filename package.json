@@ -8,6 +8,12 @@
     "ltx": "",
     "node-stringprep": ""
   },
+  "devDependencies": {
+    "grunt": "",
+    "grunt-push-release": "",
+    "grunt-contrib-jshint": "",
+    "grunt-jscs": ""
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/Urthen/fb-xmpp-connector.git"
