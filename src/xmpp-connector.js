@@ -3,6 +3,10 @@ var ltx = require('ltx'),
 
 function XMPPConnector(bot, i, Route) {
     var self = this;
+
+    // All connectors MUST store the bot.
+    self.bot = bot;
+
 	self.events = bot.events;
     self.config = bot.config.connectors[i];
     self.idx = self.config.module + '-' + i;
@@ -106,6 +110,12 @@ XMPPConnector.prototype.parseChat = function (stanza) {
     var route, user = null, room = null,
         body = stanza.getChildText('body');
 
+    if (!body) {
+        return;
+    }
+
+    //console.log("Stanza", JSON.stringify(stanza, function (k, v) { if (k === 'parent') { return 'Circular'; } else { return v; } }, '\t'))
+
     if (stanza.attrs.type === 'groupchat') {
         // Extract user + room from stanza
         user = stanza.attrs.from.split('/')[1];
@@ -117,6 +127,12 @@ XMPPConnector.prototype.parseChat = function (stanza) {
         }
 
     } else {
+        // Some providers (slack, for instance) send recently sent direct messages in a weird way upon reconnection.
+        // They appear with bodies like this: "[fritbot] Huh?" but as if they were sent by the other user in the conversation.
+        if (body.indexOf('[' + this.config.user + ']') === 0) {
+            return;
+        }
+
         // Direct messages parse differently
         user = stanza.attrs.from.split('@')[0];
     }
@@ -130,14 +146,15 @@ XMPPConnector.prototype.parseChat = function (stanza) {
 
 XMPPConnector.prototype.send = function (route, message) {
     if (route.room && route.user) {
-        message = route.user + ' : ' + message;
+        message = route.user.nick + ': ' + message;
     }
     var reply = new ltx.Element('message', {
-        to : route.room ? route.room + '@' + this.config.conference_host  : route.user + '@' + this.config.host,
-        type : route.room ? 'groupchat'  : 'chat'
+        to : route.room ? route.room + '@' + this.config.conference_host : route.user.username + '@' + this.config.host,
+        type : route.room ? 'groupchat' : 'chat'
     });
     reply.c('body').t(message);
     this.client.send(reply);
+    this.events.emit('sentMessage', route, message);
 };
 
 XMPPConnector.prototype.shutdown = function () {
