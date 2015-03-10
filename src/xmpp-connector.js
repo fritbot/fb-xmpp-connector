@@ -7,7 +7,7 @@ function XMPPConnector(bot, i, Route) {
     // All connectors MUST store the bot.
     self.bot = bot;
 
-	self.events = bot.events;
+    self.events = bot.events;
     self.config = bot.config.connectors[i];
     self.idx = self.config.module + '-' + i;
     self.Route = Route;
