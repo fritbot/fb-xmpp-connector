@@ -149,7 +149,7 @@ XMPPConnector.prototype.send = function (route, message) {
         message = route.user.nick + ': ' + message;
     }
     var reply = new ltx.Element('message', {
-        to : route.room ? route.room + '@' + this.config.conference_host : route.user.username + '@' + this.config.host,
+        to : route.room ? route.room + '@' + this.config.conference_host : route.username + '@' + this.config.host,
         type : route.room ? 'groupchat' : 'chat'
     });
     reply.c('body').t(message);
