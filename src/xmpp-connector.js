@@ -41,6 +41,21 @@ function XMPPConnector(bot, i, Route) {
             self.client.send(pong);
         }
 
+        // Handle inbound room presence
+        if (stanza.is('presence')) {
+            var user = stanza.attrs.from.split('/')[1];
+            var room = stanza.attrs.from.split('@')[0];
+
+            if (room && user && stanza.attrs.to !== self.config.user + '@' + self.config.host) {
+                var route = new self.Route(self, room, user);
+                if (stanza.attrs.type === 'unavailable') {
+                    bot.users.userLeavesRoom(route);
+                } else {
+                    bot.users.userEntersRoom(route);
+                }
+            }
+        }
+
         // Don't handle other things
     });
 
