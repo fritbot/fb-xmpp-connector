@@ -1,22 +1,28 @@
 var ltx = require('ltx'),
     Client = require('node-xmpp-client');
 
-function XMPPConnector(bot, i, Route) {
+function XMPPConnector(bot, Route) {
     var self = this;
 
     // All connectors MUST store the bot.
     self.bot = bot;
 
     self.events = bot.events;
-    self.config = bot.config.connectors[i];
-    self.idx = self.config.module + '-' + i;
     self.Route = Route;
+
+    bot.configLoader.ensure('xmpp_host', null, 'XMPP Server Hostname (blah.slack.com)');
+    bot.configLoader.ensure('xmpp_conference_host', null, "Usually prepend 'conference.' to server hostname (conference.blah.slack.com)");
+    bot.configLoader.ensure('xmpp_user');
+    bot.configLoader.ensure('xmpp_resource', null, 'Resource - for some services, such as Slack, this must be the same as user');
+    bot.configLoader.ensure('xmpp_password');
+    bot.configLoader.ensure('xmpp_presence', 'The Angriest Bot', 'Bot status line');
+    bot.configLoader.ensure('xmpp_rooms', [], 'List of rooms to join');
 
     // Create XMPP client
     self.client = new Client({
-        jid : self.config.user + '@' + self.config.host + '/' + self.config.resource,
-        password : self.config.password,
-        host : self.config.host,
+        jid : bot.config.xmpp_user + '@' + bot.config.xmpp_host + '/' + bot.config.xmpp_resource,
+        password : bot.config.xmpp_password,
+        host : bot.config.xmpp_host,
         reconnect : true
     });
 
@@ -46,7 +52,7 @@ function XMPPConnector(bot, i, Route) {
             var user = stanza.attrs.from.split('/')[1];
             var room = stanza.attrs.from.split('@')[0];
 
-            if (room && user && stanza.attrs.to !== self.config.user + '@' + self.config.host) {
+            if (room && user && stanza.attrs.to !== bot.config.xmpp_user + '@' + bot.config.xmpp_host) {
                 var route = new self.Route(self, room, user);
                 if (stanza.attrs.type === 'unavailable') {
                     bot.users.userLeavesRoom(route);
@@ -65,11 +71,11 @@ function XMPPConnector(bot, i, Route) {
         self.events.emit('chat_connected', self);
         self.client.send(new ltx.Element('presence', { })
           .c('show').t('chat').up()
-          .c('status').t(self.config.presence)
+          .c('status').t(bot.config.xmpp_presence)
         );
 
-        for (i in self.config.rooms) {
-            self.joinRoom(self.config.rooms[i]);
+        for (var i in bot.config.xmpp_rooms) {
+            self.joinRoom(bot.config.xmpp_rooms[i]);
         }
     });
 
@@ -103,7 +109,7 @@ function XMPPConnector(bot, i, Route) {
 XMPPConnector.prototype.joinRoom = function (room) {
     console.log('XMPP joining', room);
     var presence = new ltx.Element('presence', {
-        to : room + '@' + this.config.conference_host + '/' + this.config.resource
+        to : room + '@' + this.bot.config.xmpp_conference_host + '/' + this.bot.config.xmpp_resource
     });
     // Don't get ancient history, but allow the server to send a few minutes, in case we experience a momentary disconnect
     presence.c('x', { xmlns : 'http ://jabber.org/protocol/muc' }).c('history', { seconds : 300 } );
@@ -114,7 +120,7 @@ XMPPConnector.prototype.joinRoom = function (room) {
 XMPPConnector.prototype.leaveRoom = function (room) {
     console.log('XMPP leaving', room);
     var presence = new ltx.Element('presence', {
-        to : room + '@' + this.config.conference_host + '/' + this.config.resource,
+        to : room + '@' + this.bot.config.xmpp_conference_host + '/' + this.bot.config.resource,
         type : 'unavailable'
     });
     this.client.send(presence);
@@ -137,14 +143,14 @@ XMPPConnector.prototype.parseChat = function (stanza) {
         room = stanza.attrs.from.split('@')[0];
 
         // Never pay any attention to our own messages.
-        if (user === this.config.user) {
+        if (user === this.bot.config.xmpp_user) {
             return;
         }
 
     } else {
         // Some providers (slack, for instance) send recently sent direct messages in a weird way upon reconnection.
         // They appear with bodies like this: "[fritbot] Huh?" but as if they were sent by the other user in the conversation.
-        if (body.indexOf('[' + this.config.user + ']') === 0) {
+        if (body.indexOf('[' + this.bot.config.xmpp_user + ']') === 0) {
             return;
         }
 
@@ -164,7 +170,7 @@ XMPPConnector.prototype.send = function (route, message) {
         message = route.user.nick + ': ' + message;
     }
     var reply = new ltx.Element('message', {
-        to : route.room ? route.room + '@' + this.config.conference_host : route.username + '@' + this.config.host,
+        to : route.room ? route.room + '@' + this.bot.config.xmpp_conference_host : route.username + '@' + this.bot.config.xmpp_host,
         type : route.room ? 'groupchat' : 'chat'
     });
     reply.c('body').t(message);
