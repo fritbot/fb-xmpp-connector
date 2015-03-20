@@ -12,9 +12,9 @@ function XMPPConnector(bot, Route) {
 
     bot.configLoader.ensure('xmpp_host', null, 'XMPP Server Hostname (blah.slack.com)');
     bot.configLoader.ensure('xmpp_conference_host', null, "Usually prepend 'conference.' to server hostname (conference.blah.slack.com)");
-    bot.configLoader.ensure('xmpp_user');
+    bot.configLoader.ensure('xmpp_user', null, 'Bot Username');
     bot.configLoader.ensure('xmpp_resource', null, 'Resource - for some services, such as Slack, this must be the same as user');
-    bot.configLoader.ensure('xmpp_password');
+    bot.configLoader.ensure('xmpp_password', null, null);
     bot.configLoader.ensure('xmpp_presence', 'The Angriest Bot', 'Bot status line');
     bot.configLoader.ensure('xmpp_rooms', [], 'List of rooms to join');
 
