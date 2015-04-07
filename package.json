@@ -1,6 +1,6 @@
 {
   "name": "fb-xmpp-connector",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Fritbot xmpp Connector",
   "dependencies": {
     "q": "",
