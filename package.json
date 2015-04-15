@@ -4,7 +4,7 @@
   "description": "Fritbot xmpp Connector",
   "dependencies": {
     "q": "",
-    "node-xmpp-client": "",
+    "node-xmpp-client": "1.0.0-alpha20",
     "ltx": "",
     "node-stringprep": ""
   },
